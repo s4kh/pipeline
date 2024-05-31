@@ -1,0 +1,48 @@
+version: '3.7'
+services:
+  zookeeper:
+    env_file:
+      - ./.env
+    hostname: zookeeper
+    image: bitnami/zookeeper
+    expose:
+      - "2181"
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: bitnami/kafka
+    env_file:
+      - ./.env
+    depends_on:
+      - zookeeper
+    ports:
+      - '9092:9092'
+
+  app:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: server
+    ports:
+      - 8000:8000
+    env_file:
+      - ./server/.env
+    depends_on:
+      - kafka
+
+  producer:
+    build:
+      context: ./producer
+      dockerfile: Dockerfile
+    env_file:
+      - ./producer/.env
+    ports:
+      - 8001:8000
+    restart: always
+    depends_on:
+      - kafka
+
+volumes:
+  kafka_data:
+    driver: local

@@ -18,5 +18,6 @@ RUN go build -o /producer .
 
 FROM scratch
 COPY --from=builder /producer /producer
+COPY .env .
 
 ENTRYPOINT ["/producer"]

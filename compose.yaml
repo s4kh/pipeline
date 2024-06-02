@@ -1,23 +1,23 @@
 version: '3.7'
-services:
-  zookeeper:
-    env_file:
-      - ./.env
-    hostname: zookeeper
-    image: bitnami/zookeeper
-    expose:
-      - "2181"
-    ports:
-      - "2181:2181"
 
+networks:
+  kafka-net:
+    driver: bridge
+
+services:
   kafka:
-    image: bitnami/kafka
+    image: 'bitnami/kafka:latest'
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - 9092:9092
+      - 9094:9094
     env_file:
       - ./.env
-    depends_on:
-      - zookeeper
-    ports:
-      - '9092:9092'
+    volumes:
+      - ./kafka/data:/var/lib/kafka/data
+    networks:
+      - kafka-net
 
   app:
     build:
@@ -30,6 +30,8 @@ services:
       - ./server/.env
     depends_on:
       - kafka
+    networks:
+      - kafka-net
 
   producer:
     build:
@@ -39,9 +41,10 @@ services:
       - ./producer/.env
     ports:
       - 8001:8000
-    restart: always
     depends_on:
       - kafka
+    networks:
+      - kafka-net
 
 volumes:
   kafka_data:

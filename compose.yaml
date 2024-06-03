@@ -18,6 +18,12 @@ services:
       - ./kafka/data:/var/lib/kafka/data
     networks:
       - kafka-net
+    healthcheck:
+      test: kafka-topics.sh --list --bootstrap-server localhost:9092 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   app:
     build:
@@ -42,7 +48,8 @@ services:
     ports:
       - 8001:8000
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     networks:
       - kafka-net
 

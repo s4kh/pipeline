@@ -1,6 +1,7 @@
 package trades
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -32,6 +33,12 @@ func getConnection() (*websocket.Conn, error) {
 
 	u := url.URL{Scheme: "wss", Host: host, Path: "/ws"}
 	log.Printf("connecting to %s", u.String())
+
+	dialer := websocket.DefaultDialer
+
+	dialer.TLSClientConfig = &tls.Config{
+		InsecureSkipVerify: true,
+	}
 
 	c, resp, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/websocket"
+	"github.com/s4kh/trader-app/producer/msgbroker"
 )
 
 const (
@@ -83,7 +84,7 @@ func CloseConnections() {
 	conn.Close()
 }
 
-func SubscribeAndListen(topics []string, mb MsgBroker) error {
+func SubscribeAndListen(topics []string, mb msgbroker.MsgBroker) error {
 	conn, err := getConnection()
 	if err != nil {
 		return fmt.Errorf("could not get connection: %v", err)
@@ -112,7 +113,7 @@ func SubscribeAndListen(topics []string, mb MsgBroker) error {
 
 	log.Println("listening", tradeTopics)
 
-	resChan := make(chan PublishRes)
+	resChan := make(chan msgbroker.PublishRes)
 
 	for {
 		t, payload, err := conn.ReadMessage()
@@ -142,13 +143,13 @@ func SubscribeAndListen(topics []string, mb MsgBroker) error {
 	}
 }
 
-func listenWorkerRes(resChan <-chan PublishRes) {
+func listenWorkerRes(resChan <-chan msgbroker.PublishRes) {
 	for val := range resChan {
 		fmt.Println(val)
 	}
 }
 
-func publishToMsgBroker(mb MsgBroker, t Ticker, resChan chan<- PublishRes) {
+func publishToMsgBroker(mb msgbroker.MsgBroker, t Ticker, resChan chan<- msgbroker.PublishRes) {
 	key := fmt.Sprintf("%s-%s", t.Symbol, strconv.Itoa(int(t.Time)))
 	topic := fmt.Sprintf("trades-%s", t.Symbol)
 	mb.Publish(t.String(), key, topic, resChan)

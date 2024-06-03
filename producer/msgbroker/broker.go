@@ -1,4 +1,4 @@
-package trades
+package msgbroker
 
 import (
 	"context"
@@ -11,6 +11,10 @@ import (
 type MsgBroker interface {
 	Publish(msg, key, topic string, res chan<- PublishRes)
 }
+
+const (
+	VOTE_RECEIVED = "vote-received"
+)
 
 type KMsgBroker struct {
 	Host   string
@@ -36,7 +40,6 @@ func NewMsgBrokerClient(host, port string) *KMsgBroker {
 			AllowAutoTopicCreation: true,
 		},
 	}
-	fmt.Println(kmb.Writer.Addr)
 
 	return kmb
 }
@@ -50,7 +53,6 @@ func (kb *KMsgBroker) Publish(msg, key, topic string, resChan chan<- PublishRes)
 		},
 	}
 
-	log.Println(msg, "sending to", topic)
 	err := kb.Writer.WriteMessages(context.Background(), messages...)
 	if err != nil {
 		resChan <- PublishRes{code: 1, err: fmt.Errorf("failed to send message: %v", err)}

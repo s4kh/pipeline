@@ -46,7 +46,7 @@ services:
     env_file:
       - ./producer/.env
     ports:
-      - 8001:8000
+      - 8081:8081
     depends_on:
       kafka:
         condition: service_healthy

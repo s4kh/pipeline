@@ -23,12 +23,12 @@ type KMsgBroker struct {
 }
 
 type PublishRes struct {
-	code int // 0 - success, 1 - error
-	err  error
+	Code int // 0 - success, 1 - error
+	Err  error
 }
 
 func (pr PublishRes) String() string {
-	return fmt.Sprintf("%d: %v", pr.code, pr.err)
+	return fmt.Sprintf("%d: %v", pr.Code, pr.Err)
 }
 
 func NewMsgBrokerClient(host, port string) *KMsgBroker {
@@ -55,10 +55,10 @@ func (kb *KMsgBroker) Publish(msg, key, topic string, resChan chan<- PublishRes)
 
 	err := kb.Writer.WriteMessages(context.Background(), messages...)
 	if err != nil {
-		resChan <- PublishRes{code: 1, err: fmt.Errorf("failed to send message: %v", err)}
+		resChan <- PublishRes{Code: 1, Err: fmt.Errorf("failed to send message: %v", err)}
 		return
 	}
 
 	log.Println(msg, "sent to", topic)
-	resChan <- PublishRes{code: 0, err: nil}
+	resChan <- PublishRes{Code: 0, Err: nil}
 }

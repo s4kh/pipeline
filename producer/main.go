@@ -21,17 +21,6 @@ func run() error {
 	mb := msgbroker.NewMsgBrokerClient(os.Getenv("KAFKA_HOST"), os.Getenv("KAFKA_PORT"))
 	defer mb.Writer.Close()
 
-	// t := os.Getenv("TICKERS")
-	// topics := strings.Split(t, ",")
-
-	// err = trades.SubscribeAndListen(topics, mb)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// defer trades.CloseConnections()
-
-	// server section
 	srv := api.NewServer(mb)
 	httpServer := http.Server{
 		Addr:    ":8081",

@@ -2,10 +2,12 @@ package api
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/s4kh/app/db"
@@ -18,9 +20,71 @@ type Vote struct {
 	Count       int    `json:"count"`
 }
 
+type VoteRes struct {
+	Vote
+	Timestamp     time.Time `json:"timestamp"`
+	CandidateName string    `json:"candidateName"`
+	PartyName     string    `json:"partyName"`
+}
+
+func fetchVotes(db db.Conn, page, pageSize int) ([]VoteRes, error) {
+	offset := (page - 1) * pageSize
+	voteRows, err := db.Get().Query("SELECT * FROM votes ORDER BY total_vote DESC LIMIT $1 OFFSET $2", pageSize, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve votes: %v", err)
+	}
+
+	var votes []VoteRes
+
+	for voteRows.Next() {
+		var v VoteRes
+		var candName, partyName sql.NullString
+		if err := voteRows.Scan(&v.CandidateId, &candName, &v.PartyId, &partyName, &v.Count, &v.Timestamp); err != nil {
+			return nil, err
+		}
+		v.PartyName = partyName.String
+		v.CandidateName = candName.String
+
+		votes = append(votes, v)
+	}
+
+	return votes, err
+}
+
 func handleGetVotes(db db.Conn) http.Handler {
+	const (
+		maxPageSize     = 100
+		defaultPageSize = 50
+		defaultPage     = 1
+	)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// read from db
+		queryParams := r.URL.Query()
+
+		page, err := strconv.Atoi(queryParams.Get("page"))
+		if err != nil || page < 1 {
+			page = defaultPage
+		}
+
+		pageSize, err := strconv.Atoi(queryParams.Get("pageSize"))
+		if err != nil || pageSize < 1 || pageSize > maxPageSize {
+			pageSize = defaultPageSize
+		}
+
+		votes, err := fetchVotes(db, page, pageSize)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("failed to fetch votes"))
+			return
+		}
+
+		err = encode(w, 200, votes)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("failed to fetch votes"))
+		}
+
 	})
 }
 

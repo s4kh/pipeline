@@ -11,13 +11,17 @@ import (
 	"time"
 
 	"github.com/s4kh/app/db"
-	"github.com/s4kh/app/lib"
+	"github.com/s4kh/app/msgbroker"
 )
 
 type Vote struct {
 	CandidateId string `json:"candidateId"`
 	PartyId     string `json:"partyId"`
 	Count       int    `json:"count"`
+}
+
+type VoteUpdateBroadCaster interface {
+	BroadcastVoteUpdate(v *Vote)
 }
 
 type VoteRes struct {
@@ -94,16 +98,16 @@ func handleGetVotes(db db.Conn) http.Handler {
 // 	})
 // }
 
-func consume(c lib.Broker, db db.Conn) {
+func consume(br msgbroker.BrokerReader, db db.Conn, b VoteUpdateBroadCaster) {
 	for {
-		msg, err := c.ReadMessage(context.Background())
+		msg, err := br.ReadMessage(context.Background())
 		if err != nil {
 			log.Printf("error during msg consumption: %v", err)
 			continue
 		}
 
 		go func(msg []byte) {
-			err := handleMessage(msg, db)
+			err := handleMessage(msg, db, b)
 			if err != nil {
 				log.Printf("failed to handle message: %v, err: %v\n", string(msg), err)
 			}
@@ -111,7 +115,7 @@ func consume(c lib.Broker, db db.Conn) {
 	}
 }
 
-func handleMessage(msg []byte, db db.Conn) error {
+func handleMessage(msg []byte, db db.Conn, b VoteUpdateBroadCaster) error {
 	var v Vote
 	if err := json.Unmarshal(msg, &v); err != nil {
 		return fmt.Errorf("could not unmarshal msg: %v", err)
@@ -126,18 +130,22 @@ func handleMessage(msg []byte, db db.Conn) error {
 		return fmt.Errorf("failed to update the vote in db: %v", err)
 	}
 
+	b.BroadcastVoteUpdate(&v)
+
 	log.Println("processed", v)
 
 	return nil
 }
 
-func NewServer(db db.Conn, consumer lib.Broker) http.Handler {
+func NewServer(db db.Conn, br msgbroker.BrokerReader, wss *Hub) http.Handler {
 	mux := http.NewServeMux()
 	// if you have multiple routes you would extract a routes.go
 	mux.Handle("GET /votes", handleGetVotes(db))
+	mux.Handle("/ws", wss.HandleWebSocket())
 	mux.HandleFunc("/", http.NotFoundHandler().ServeHTTP)
 
-	go consume(consumer, db)
+	go consume(br, db, wss)
+	go wss.StartBroadCast()
 
 	return mux
 }

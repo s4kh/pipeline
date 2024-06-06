@@ -1,4 +1,4 @@
-package lib
+package msgbroker
 
 import (
 	"context"
@@ -11,7 +11,7 @@ const (
 	VOTE_GROUP    = "vote-group"
 )
 
-type Broker interface {
+type BrokerReader interface {
 	ReadMessage(ctx context.Context) ([]byte, error)
 }
 
@@ -19,7 +19,7 @@ type Consumer struct {
 	*kafka.Reader
 }
 
-func NewReader(brokers []string, topic, groupId string) Broker {
+func NewReader(brokers []string, topic, groupId string) BrokerReader {
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  brokers,
 		Topic:    topic,

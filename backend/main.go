@@ -9,7 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/s4kh/app/api"
 	"github.com/s4kh/app/db"
-	"github.com/s4kh/app/lib"
+	"github.com/s4kh/app/msgbroker"
 )
 
 func run() error {
@@ -32,9 +32,10 @@ func run() error {
 	defer db.Close()
 
 	brokers := []string{fmt.Sprintf("%s:%s", os.Getenv("KAFKA_HOST"), os.Getenv("KAFKA_PORT"))}
-	consumer := lib.NewReader(brokers, lib.VOTE_RECEIVED, lib.VOTE_GROUP)
+	consumer := msgbroker.NewReader(brokers, msgbroker.VOTE_RECEIVED, msgbroker.VOTE_GROUP)
+	wss := api.NewHub()
 
-	srv := api.NewServer(db, consumer)
+	srv := api.NewServer(db, consumer, wss)
 	httpServer := http.Server{
 		Addr:    ":8082",
 		Handler: srv,

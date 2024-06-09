@@ -33,25 +33,46 @@ document.addEventListener("DOMContentLoaded", () => {
   function displayResults(data) {
     console.log(data);
     resultsDiv.innerHTML = '';
-    for (const { candidateId, count } of data) {
+    for (const { candidateId, count } of data.candidateVotes) {
       const candidateDiv = document.createElement('div');
       candidateDiv.className = 'candidate';
       candidateDiv.id = `candidate-${candidateId}`;
       candidateDiv.textContent = `Candidate ${candidateId}: ${count} votes`;
       resultsDiv.appendChild(candidateDiv);
     }
+    for (const { partyId, count } of data.partyVotes) {
+      const partyDiv = document.createElement('div');
+      partyDiv.className = 'party';
+      partyDiv.id = `party-${partyId}`;
+      partyDiv.textContent = `Party ${partyId}: ${count} votes`;
+      resultsDiv.appendChild(partyDiv);
+    }
   }
 
   function updateResults(voteEvent) {
-    const candidateDiv = document.getElementById(`candidate-${voteEvent.candidateId}`);
-    if (candidateDiv) {
-      candidateDiv.textContent = `Candidate ${voteEvent.candidateId}: ${voteEvent.count} votes`;
-    } else {
-      const newCandidateDiv = document.createElement('div');
-      newCandidateDiv.className = 'candidate';
-      newCandidateDiv.id = `candidate-${voteEvent.candidateId}`;
-      newCandidateDiv.textContent = `Candidate ${voteEvent.candidateId}: ${voteEvent.count} votes`;
-      resultsDiv.appendChild(newCandidateDiv);
+    if (voteEvent.type === 'candidate') {
+      const candidateDiv = document.getElementById(`candidate-${voteEvent.candidateId}`);
+      if (candidateDiv) {
+        candidateDiv.textContent = `Candidate ${voteEvent.candidateId}: ${voteEvent.count} votes`;
+      } else {
+        const newCandidateDiv = document.createElement('div');
+        newCandidateDiv.className = 'candidate';
+        newCandidateDiv.id = `candidate-${voteEvent.candidateId}`;
+        newCandidateDiv.textContent = `Candidate ${voteEvent.candidateId}: ${voteEvent.count} votes`;
+        resultsDiv.appendChild(newCandidateDiv);
+      }
+    }
+    if (voteEvent.type === 'party') {
+      const partyDiv = document.getElementById(`party-${voteEvent.partyId}`);
+      if (partyDiv) {
+        partyDiv.textContent = `party ${voteEvent.partyId}: ${voteEvent.count} votes`;
+      } else {
+        const newPartyDiv = document.createElement('div');
+        newPartyDiv.className = 'party';
+        newPartyDiv.id = `party-${voteEvent.partyId}`;
+        newPartyDiv.textContent = `party ${voteEvent.partyId}: ${voteEvent.count} votes`;
+        resultsDiv.appendChild(newPartyDiv);
+      }
     }
   }
 });

@@ -1,4 +1,4 @@
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -20,8 +20,9 @@
     }
 
     .region {
-      stroke: #000;
-      stroke-width: 0.5;
+      fill: steelblue;
+      stroke: white;
+      stroke-width: 1px;
     }
 
     .popover {
@@ -56,10 +57,12 @@
 
 <body>
   <div class="map" id="map"></div>
+  <div class="map" id="results"></div>
   <div class="popover" id="popover" style="display: none;"></div>
   <script src="https://d3js.org/d3.v6.min.js"></script>
   <script src="https://d3js.org/topojson.v1.min.js"></script>
-  <script>
+  <script src="app.js"></script>
+  <!-- <script>
     // Set dimensions for the map
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -77,16 +80,6 @@
       .translate([width / 2, height / 2]);
 
     const path = d3.geoPath().projection(projection);
-
-    // Function to generate random colors
-    function getRandomColor() {
-      const letters = '0123456789ABCDEF';
-      let color = '#';
-      for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
-      return color;
-    }
 
     // Sample data: candidate information per region
     const candidateData = {
@@ -121,10 +114,11 @@
         .append("path")
         .attr("class", "region")
         .attr("d", path)
-        .attr("fill", getRandomColor)
         .on("mouseover", function (event, d) {
-          console.log(d);
           d3.select(this).attr("fill", "orange");
+          tooltip.transition()
+            .duration(200)
+            .style("opacity", .9);
           const popover = d3.select("#popover");
           popover.html(createPopoverContent(d))
             .style("left", (event.pageX + 10) + "px")
@@ -132,43 +126,15 @@
             .style("display", "block");
         })
         .on("mouseout", function (event, d) {
-          d3.select(this).attr("fill", getRandomColor);
           d3.select("#popover").style("display", "none");
+          d3.select(this).attr("fill", "steelblue");
+          tooltip.transition()
+            .duration(500)
+            .style("opacity", 0);
         });
     });
-  </script>
-</body>
+  </script> -->
 
-</html> -->
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Election Results</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-
-    #results {
-      margin-top: 20px;
-    }
-
-    .candidate {
-      margin: 10px 0;
-    }
-  </style>
-</head>
-
-<body>
-  <h1>Election Results</h1>
-  <div id="results">
-    <!-- Vote results will be displayed here -->
-  </div>
-  <script src="app.js"></script>
 </body>
 
 </html>

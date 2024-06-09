@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Highlighting Grouped Regions on Mouseover</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    .region {
+      fill: steelblue;
+      stroke: white;
+      stroke-width: 1px;
+    }
+
+    .region:hover {
+      fill: orange;
+    }
+
+    .tooltip {
+      position: absolute;
+      text-align: center;
+      width: 100px;
+      height: 28px;
+      padding: 2px;
+      font: 12px sans-serif;
+      background: lightsteelblue;
+      border: 0px;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+  <svg id="map" width="800" height="600"></svg>
+  <script>
+    const url = "https://raw.githubusercontent.com/Bilgee/mongolia-geojson/master/mongolia.prefectures.geojson";
+
+    fetch(url)
+      .then(response => response.json())
+      .then(geojson => {
+        // Create a projection and path generator
+        const projection = d3.geoMercator().fitSize([800, 600], geojson);
+        const path = d3.geoPath().projection(projection);
+
+        // Create an SVG element
+        const svg = d3.select("#map");
+
+        // Create a tooltip
+        const tooltip = d3.select("body").append("div")
+          .attr("class", "tooltip")
+          .style("opacity", 0);
+
+        // Append regions to the SVG
+        const regions = svg.selectAll(".region")
+          .data(geojson.features)
+          .enter().append("path")
+          .attr("class", "region")
+          .attr("d", path)
+          .attr("id", d => d.properties.prefecture.replace(/\s+/g, '-')) // Add ID for each region
+          .on("mouseover", function (event, d) {
+            console.log(d.properties)
+            // Highlight the region
+            highlightRegion(d.properties.prefecture, true);
+            tooltip.transition()
+              .duration(200)
+              .style("opacity", .9);
+            tooltip.html(d.properties.prefecture)
+              .style("left", (event.pageX) + "px")
+              .style("top", (event.pageY - 28) + "px");
+          })
+          .on("mouseout", function (event, d) {
+            // Remove the highlight from the region
+            highlightRegion(d.properties.prefecture, false);
+            tooltip.transition()
+              .duration(500)
+              .style("opacity", 0);
+          });
+
+        // Function to highlight grouped regions
+        function highlightRegion(prefecture, highlight) {
+          if (prefecture === "Bayankhongor" || prefecture === "Arkhangai") {
+            d3.select("#Arkhangai")
+              .attr("fill", highlight ? "orange" : "steelblue");
+            console.log('weeeee')
+            d3.select("#Bayankhongor")
+              .attr("fill", highlight ? "orange" : "steelblue");
+          } else {
+            d3.select(`#${prefecture.replace(/\s+/g, '-')}`)
+              .attr("fill", highlight ? "orange" : "steelblue");
+          }
+        }
+      });
+  </script>
+</body>
+
+</html>

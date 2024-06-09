@@ -7,9 +7,9 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/s4kh/app/api"
-	"github.com/s4kh/app/db"
-	"github.com/s4kh/app/msgbroker"
+	"github.com/s4kh/backend/api"
+	"github.com/s4kh/backend/db"
+	"github.com/s4kh/backend/msgbroker"
 )
 
 func run() error {

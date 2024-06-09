@@ -14,7 +14,7 @@ RUN go mod download
 # https://docs.docker.com/reference/dockerfile/#copy
 COPY . .
 
-RUN go build -o /backend .
+RUN go build -o /backend ./cmd/server/.
 
 FROM scratch
 COPY --from=builder /backend /backend

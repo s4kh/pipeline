@@ -1,43 +1,14 @@
 package db
 
 import (
-	"database/sql"
-	"fmt"
-	"log"
+	"context"
 
-	_ "github.com/lib/pq"
+	"github.com/s4kh/backend/models"
 )
 
-type Conn interface {
-	Get() *sql.DB
+type DB interface {
+	FetchCandidateVotes(ctx context.Context, page, pageSize int) ([]models.CandidateVote, error)
+	FetchPartyVotes(ctx context.Context, page, pageSize int) ([]models.Vote, error)
+	UpsertVoteEvent(ctx context.Context, v models.Vote) error
 	Close() error
-}
-
-type DB struct {
-	*sql.DB
-}
-
-func NewPostgresConnection(url string) (Conn, error) {
-	dbConn, err := sql.Open("postgres", url)
-
-	if err != nil {
-		fmt.Println(err)
-		return nil, fmt.Errorf("error connecting to DB: %s, %v", url, err)
-	}
-
-	log.Println(dbConn.Stats().InUse)
-
-	return &DB{DB: dbConn}, err
-}
-
-func (db *DB) Get() *sql.DB {
-	return db.DB
-}
-
-func (db *DB) Close() error {
-	if db.DB != nil {
-		return db.DB.Close()
-	}
-
-	return fmt.Errorf("cannot close nil db")
 }

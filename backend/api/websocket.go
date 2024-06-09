@@ -6,11 +6,12 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/s4kh/backend/models"
 )
 
 type Hub struct {
 	clients   map[*websocket.Conn]bool
-	broadcast chan *Vote
+	broadcast chan *models.Vote
 	mutex     sync.RWMutex
 	upgrader  websocket.Upgrader
 }
@@ -18,7 +19,7 @@ type Hub struct {
 func NewHub() *Hub {
 	return &Hub{
 		clients:   make(map[*websocket.Conn]bool),
-		broadcast: make(chan *Vote),
+		broadcast: make(chan *models.Vote),
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -57,7 +58,7 @@ func (h *Hub) HandleWebSocket() http.Handler {
 	})
 }
 
-func (h *Hub) BroadcastVoteUpdate(v *Vote) {
+func (h *Hub) BroadcastVoteUpdate(v *models.Vote) {
 	h.broadcast <- v
 }
 
